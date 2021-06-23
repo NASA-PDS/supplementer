@@ -18,14 +18,15 @@ public class JParserTest1
         
         
         TableObject table = label.getObjects(TableObject.class).get(0);
+        TableRecord rec = table.readNext();
         
         FieldDescription[] fields = table.getFields();
-        FieldDescription field = fields[0];
-        
-        System.out.println(field.getType());
-        
-        TableRecord rec = table.readNext();
-        System.out.println(rec.getString(1));
+        for(int i = 0; i < fields.length; i++)
+        {
+            FieldDescription field = fields[i];
+            System.out.format("%2d  %s (%s)  ->  %s\n", 
+                i+1, field.getName(), field.getType(), rec.getString(i+1));
+        }
     }
 
 }

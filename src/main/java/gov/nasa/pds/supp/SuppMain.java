@@ -5,8 +5,8 @@ public class SuppMain
 
     public static void main(String[] args)
     {
-        // TODO Auto-generated method stub
-
+        SuppCli cli = new SuppCli();
+        cli.run(args);
     }
 
 }
