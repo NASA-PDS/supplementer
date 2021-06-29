@@ -20,10 +20,12 @@ public class TestRegistryDao
         try
         {
             client = EsClientFactory.createRestClient("localhost", null);
-            RegistryDao dao = new RegistryDao(client);
+            RegistryDao dao = new RegistryDao(client, "registry");
 
-            List<String> lids = Arrays.asList("urn:nasa:pds:cassini_vims_cruise:data_raw:1294638283");
-            Map<String, List<String>> map = dao.findLidVidsByLids(lids);
+            List<String> lids = Arrays.asList(
+                    "urn:nasa:pds:cassini_vims_cruise:data_raw:1294638283",
+                    "urn:nasa:pds:cassini_vims_cruise:data_raw:1294638377");
+            Map<String, List<String>> map = dao.findVidsByLids(lids);
             map.forEach((key, value) -> 
             { 
                 System.out.println(key + ": " + value); 
