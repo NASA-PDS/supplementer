@@ -1,6 +1,7 @@
 package tt;
 
 import java.io.File;
+import java.util.List;
 
 import gov.nasa.pds.label.Label;
 import gov.nasa.pds.label.object.FieldDescription;
@@ -14,10 +15,9 @@ public class JParserTest1
     {
         Label label = Label.open(new File("/ws3/Cassini/vims/raw/index.xml"));
         
-        //ProductMetadataSupplemental sup = (ProductMetadataSupplemental)label.genericProduct;
+        List<TableObject> tables = label.getObjects(TableObject.class);
+        TableObject table = tables.get(0);
         
-        
-        TableObject table = label.getObjects(TableObject.class).get(0);
         TableRecord rec = table.readNext();
         
         FieldDescription[] fields = table.getFields();
@@ -27,6 +27,8 @@ public class JParserTest1
             System.out.format("%2d  %s (%s)  ->  %s\n", 
                 i+1, field.getName(), field.getType(), rec.getString(i+1));
         }
+        
+        label.close();
     }
 
 }

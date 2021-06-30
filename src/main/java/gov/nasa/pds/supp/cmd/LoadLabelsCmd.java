@@ -5,8 +5,13 @@ import java.io.File;
 import java.io.FileReader;
 
 import org.apache.commons.cli.CommandLine;
+import org.elasticsearch.client.ResponseException;
+import org.elasticsearch.client.RestClient;
 
+import gov.nasa.pds.registry.common.es.client.EsClientFactory;
+import gov.nasa.pds.registry.common.es.client.EsUtils;
 import gov.nasa.pds.registry.common.util.CloseUtils;
+import gov.nasa.pds.supp.dao.DaoManager;
 
 /**
  * Load supplemental data from Product_Metadata_Supplemental labels into registry index 
@@ -14,10 +19,6 @@ import gov.nasa.pds.registry.common.util.CloseUtils;
  */
 public class LoadLabelsCmd implements CliCommand
 {
-    private String esUrl;
-    private String indexName;
-    private String authPath;
-
     private SupplementalLabelProcessor proc;
     
     
@@ -39,9 +40,9 @@ public class LoadLabelsCmd implements CliCommand
         }
 
         // Read Elasticsearch parameters
-        esUrl = cmdLine.getOptionValue("es", "http://localhost:9200");
-        indexName = cmdLine.getOptionValue("index", "registry");
-        authPath = cmdLine.getOptionValue("auth");
+        String esUrl = cmdLine.getOptionValue("es", "http://localhost:9200");
+        String indexName = cmdLine.getOptionValue("index", "registry");
+        String authPath = cmdLine.getOptionValue("auth");
 
         // Read and validate "-file" parameter
         String pFile = cmdLine.getOptionValue("file");
@@ -56,9 +57,26 @@ public class LoadLabelsCmd implements CliCommand
             throw new Exception("Unknown file type. Only '.xml' or '.txt' files are allowed: " + pFile);            
         }
 
-        // Process file
-        proc = new SupplementalLabelProcessor();
-        processFile(pFile);
+        RestClient client = null;
+        
+        try
+        {
+            // Init Elasticsearch client and DAOs
+            client = EsClientFactory.createRestClient(esUrl, authPath);
+            DaoManager.init(client, indexName);
+            
+            // Process supplemental (list) file
+            proc = new SupplementalLabelProcessor();
+            processFile(pFile);
+        }
+        catch(ResponseException ex)
+        {
+            throw new Exception(EsUtils.extractErrorMessage(ex));
+        }
+        finally
+        {
+            CloseUtils.close(client);
+        }
     }
 
     
