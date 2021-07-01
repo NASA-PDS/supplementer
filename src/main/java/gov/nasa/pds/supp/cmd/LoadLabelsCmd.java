@@ -57,16 +57,17 @@ public class LoadLabelsCmd implements CliCommand
             throw new Exception("Unknown file type. Only '.xml' or '.txt' files are allowed: " + pFile);            
         }
 
+        // Init label processor
+        proc = new SupplementalLabelProcessor();
+
+        // Init Elasticsearch client and DAOs
         RestClient client = null;
-        
         try
         {
-            // Init Elasticsearch client and DAOs
             client = EsClientFactory.createRestClient(esUrl, authPath);
             DaoManager.init(client, indexName);
             
             // Process supplemental (list) file
-            proc = new SupplementalLabelProcessor();
             processFile(pFile);
         }
         catch(ResponseException ex)
