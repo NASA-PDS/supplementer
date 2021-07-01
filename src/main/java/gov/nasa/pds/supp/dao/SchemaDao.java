@@ -61,7 +61,6 @@ public class SchemaDao
     
     /**
      * Add new fields to Elasticsearch schema.
-     * @param indexName Elasticsearch index to update, e.g., "registry".
      * @param fields A list of fields to add. Each field tuple has a name and a data type.
      * @throws Exception an exception
      */

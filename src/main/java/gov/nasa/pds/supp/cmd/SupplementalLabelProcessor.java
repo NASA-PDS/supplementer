@@ -1,7 +1,9 @@
 package gov.nasa.pds.supp.cmd;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,7 +11,10 @@ import org.apache.logging.log4j.Logger;
 import gov.nasa.pds.label.Label;
 import gov.nasa.pds.label.object.FieldDescription;
 import gov.nasa.pds.label.object.TableObject;
+import gov.nasa.pds.supp.dao.DaoManager;
+import gov.nasa.pds.supp.dao.SchemaDao;
 import gov.nasa.pds.supp.util.Pds2EsDataTypeMap;
+import gov.nasa.pds.supp.util.Tuple;
 
 
 /**
@@ -40,6 +45,11 @@ public class SupplementalLabelProcessor
     }
 
     
+    /**
+     * Process supplemental product PDS4 label (XML file)
+     * @param file XML file (Product_Metadata_Supplemental product)
+     * @throws Exception an exception
+     */
     public void process(File file) throws Exception
     {
         if(!file.exists()) throw new Exception("File doesn't exist: " + file);
@@ -68,8 +78,14 @@ public class SupplementalLabelProcessor
     }
     
     
+    /**
+     * Process data table of the supplemental product 
+     * @param table supplemental data table
+     * @throws Exception an exception
+     */
     private void processTable(TableObject table) throws Exception
     {
+        // Validate table
         FieldDescription[] fields = table.getFields();
         if(fields == null || fields.length == 0)
         {
@@ -77,8 +93,61 @@ public class SupplementalLabelProcessor
             return;
         }
         
-        int lidIndex = 0;
-        int lidVidIndex = 0;
+        // Get Elasticsearch field info 
+        SupplementalFieldsInfo esFieldInfo = getElasticFieldInfo(fields);
+        
+        // LID or LIDVID field is required
+        if(esFieldInfo.lidIndex == 0 && esFieldInfo.lidVidIndex == 0)
+        {
+            throw new Exception("Table is missing LID or LIDVID column.");
+        }
+
+        // Update Elasticsearch schema
+        updateSchema(esFieldInfo);
+        
+    
+        //System.out.format("%2d  %s\n", i+1, esName);
+
+    }
+    
+    
+    private void updateSchema(SupplementalFieldsInfo info) throws Exception
+    {
+        SchemaDao dao = DaoManager.getInstance().getSchemaDao();
+        
+        // Get list of existing supplemental fields from Elasticsearch
+        Set<String> existingFields = dao.getSupplementalFieldNames();
+        
+        List<Tuple> newFields = new ArrayList<>();
+        
+        // Iterate over supplemental table columns
+        // Index starts from 1
+        for(int i = 1; i <= info.size(); i++)
+        {
+            String name = info.getName(i);
+            
+            // LID or LIDVID field
+            if(name == null) continue;
+            // Field already exists in Elasticsearch
+            if(existingFields.contains(name)) continue;
+            
+            // Add non-existing field name and type to the new field list
+            Tuple tuple = new Tuple(name, info.getDataType(i));
+            newFields.add(tuple);
+        }
+        
+        // Update Elasticsearch schema
+        if(!newFields.isEmpty())
+        {
+            log.info("Updating Elasticsearch schema.");
+            dao.updateSchema(newFields);
+        }
+    }
+    
+    
+    private SupplementalFieldsInfo getElasticFieldInfo(FieldDescription[] fields)
+    {
+        SupplementalFieldsInfo info = new SupplementalFieldsInfo(fields.length);
         
         for(int i = 0; i < fields.length; i++)
         {
@@ -89,26 +158,22 @@ public class SupplementalLabelProcessor
             
             if("ASCII_LID".equalsIgnoreCase(type))
             {
-                lidIndex = i + 1;       // Index starts from 1
+                info.lidIndex = i + 1;       // Index starts from 1
             }
             else if("ASCII_LIDVID".equalsIgnoreCase(type))
             {
-                lidVidIndex = i + 1;       // Index starts from 1
+                info.lidVidIndex = i + 1;       // Index starts from 1
             }
             else
             {
                 String esType = dtMap.getEsDataType(type);
                 String esName = toElasticName(name, esType);
-                
-                System.out.format("%2d  %s\n", i+1, esName);
-                
+                // Index starts from 1
+                info.setFieldInfo(i + 1, esName, esType);
             }
         }
         
-        if(lidIndex == 0 && lidVidIndex == 0)
-        {
-            throw new Exception("Table is missing LID or LIDVID column.");
-        }
+        return info;
     }
     
     
@@ -129,7 +194,7 @@ public class SupplementalLabelProcessor
      * @return File pointing to default configuration file.
      * @throws Exception an exception
      */
-    public static File getPds2EsDataTypeCfgFile() throws Exception
+    private static File getPds2EsDataTypeCfgFile() throws Exception
     {
         String home = System.getenv("SUPPLEMENTER_HOME");
         if(home == null) 

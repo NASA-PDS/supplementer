@@ -50,7 +50,8 @@ public class RegistryRequestBuilder
     
     /**
      * Create Elasticsearch query to find documents (lidvids) by lids.
-     * @param lids one or more lids
+     * @param lids one or more LIDs
+     * @param maxHits max number of results to return
      * @return Elasticsearch JSON query
      * @throws Exception an exception
      */
