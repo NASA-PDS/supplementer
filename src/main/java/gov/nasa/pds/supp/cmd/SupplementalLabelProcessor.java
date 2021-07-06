@@ -34,6 +34,7 @@ public class SupplementalLabelProcessor
 {
     private Logger log;
     private Pds2EsDataTypeMap dtMap;
+    private SupplementalDataLoader loader;
     
     
     public SupplementalLabelProcessor() throws Exception
@@ -42,6 +43,8 @@ public class SupplementalLabelProcessor
         
         dtMap = new Pds2EsDataTypeMap();
         dtMap.load(getPds2EsDataTypeCfgFile());
+        
+        loader = new SupplementalDataLoader(); 
     }
 
     
@@ -105,9 +108,8 @@ public class SupplementalLabelProcessor
         // Update Elasticsearch schema
         updateSchema(esFieldInfo);
         
-    
-        //System.out.format("%2d  %s\n", i+1, esName);
-
+        // Load data
+        loader.loadData(table, esFieldInfo);
     }
     
     
