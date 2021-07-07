@@ -1,16 +1,25 @@
 package gov.nasa.pds.supp.dao;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
+import com.google.gson.Gson;
+
 import gov.nasa.pds.registry.common.es.client.SearchResponseParser;
+import gov.nasa.pds.registry.common.util.CloseUtils;
+
 
 /**
  * Data Access Object (DAO) to work with Elasticsearch registry index.
@@ -19,6 +28,8 @@ import gov.nasa.pds.registry.common.es.client.SearchResponseParser;
  */
 public class RegistryDao
 {
+    private Logger log;
+
     private RestClient client;
     private String esIndex;
     
@@ -31,6 +42,8 @@ public class RegistryDao
     {
         this.client = client;
         this.esIndex = esIndex;
+        
+        log = LogManager.getLogger(this.getClass());
     }
 
     
@@ -82,4 +95,109 @@ public class RegistryDao
                 
         return map;
     }
+    
+    
+    /**
+     * Call Elasticsearch bulk API to update multiple documents at once.
+     * @param json JSON request
+     * @throws Exception an exception
+     */
+    public void bulkUpdate(String json) throws Exception
+    {
+        System.out.println(json);
+        
+        Request req = new Request("POST", "/" + esIndex + "/_bulk");
+        req.setJsonEntity(json);
+        Response resp = client.performRequest(req);
+
+        String respJson = getLastLine(resp.getEntity().getContent());
+        log.debug(respJson);
+        
+        if(responseHasErrors(respJson))
+        {
+            throw new Exception("Could not load data.");
+        }
+
+    }
+
+
+    /**
+     * This method is used to parse multi-line Elasticsearch error responses.
+     * JSON error response is on the last line of a message.
+     * @param is input stream
+     * @return Last line
+     */
+    private static String getLastLine(InputStream is)
+    {
+        String lastLine = null;
+
+        try
+        {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+
+            String line;
+            while((line = rd.readLine()) != null)
+            {
+                lastLine = line;
+            }
+        }
+        catch(Exception ex)
+        {
+            // Ignore
+        }
+        finally
+        {
+            CloseUtils.close(is);
+        }
+        
+        return lastLine;
+    }
+
+    
+    /**
+     * Check for update errors.
+     * @param resp Elasticsearch API response
+     * @return true if there were any errors.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private boolean responseHasErrors(String resp)
+    {
+        try
+        {
+            // Parse JSON response
+            Gson gson = new Gson();
+            Map json = (Map)gson.fromJson(resp, Object.class);
+            
+            Boolean hasErrors = (Boolean)json.get("errors");
+            if(hasErrors)
+            {
+                List<Object> list = (List)json.get("items");
+                
+                // List size = batch size (one item per document)
+                // NOTE: Only few items in the list could have errors
+                for(Object item: list)
+                {
+                    Map index = (Map)((Map)item).get("update");
+                    if(index == null) continue;
+                    
+                    Map error = (Map)index.get("error");
+                    if(error != null)
+                    {
+                        String message = (String)error.get("reason");
+                        log.error(message);
+                        return true;
+                    }
+                }
+                
+                return true;
+            }
+
+            return false;
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }
+    }
+
 }
