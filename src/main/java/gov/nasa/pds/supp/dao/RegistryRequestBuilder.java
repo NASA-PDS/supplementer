@@ -88,5 +88,46 @@ public class RegistryRequestBuilder
         writer.close();
         return out.toString();
     }
+
     
+    /**
+     * Create Elasticsearch query to find existing lidvids.
+     * @param lidvids one or more LIDs
+     * @return Elasticsearch JSON query
+     * @throws Exception an exception
+     */
+    public String createFindLidVids(Collection<String> lidvids) throws Exception
+    {
+        if(lidvids == null || lidvids.isEmpty()) return null;
+        
+        StringWriter out = new StringWriter();
+        JsonWriter writer = createJsonWriter(out);
+
+        writer.beginObject();
+
+        writer.name("_source").value(false);
+        writer.name("size").value(lidvids.size());
+        
+        writer.name("query");
+        writer.beginObject();
+        
+        writer.name("terms");
+        writer.beginObject();
+        
+        writer.name("lidvid");
+        writer.beginArray();
+        for(String id: lidvids)
+        {
+            writer.value(id);
+        }
+        writer.endArray();
+        
+        writer.endObject();     // terms        
+        writer.endObject();     // query
+        
+        writer.endObject();
+        writer.close();
+        return out.toString();
+    }
+
 }

@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,7 +97,38 @@ public class RegistryDao
                 
         return map;
     }
+
     
+    /**
+     * Find existing lidvids
+     * @param lidvids collection of lids
+     * @return a list of existing lidvids
+     * @throws Exception an exception
+     */
+    public Set<String> findExistingLidVids(Collection<String> lidvids) throws Exception
+    {
+        if(lidvids == null || lidvids.isEmpty()) return null;
+        
+        // Create request
+        Request req = new Request("GET", "/" + esIndex + "/_search");
+        RegistryRequestBuilder bld = new RegistryRequestBuilder();
+        String json = bld.createFindLidVids(lidvids);
+        req.setJsonEntity(json);
+        
+        // Execute request
+        Response resp = client.performRequest(req);
+        SearchResponseParser respParser = new SearchResponseParser();
+        
+        Set<String> existingIds = new TreeSet<>();
+        
+        respParser.parseResponse(resp, (id, rec) -> 
+        {
+            existingIds.add(id);
+        });
+
+        return existingIds;
+    }
+
     
     /**
      * Call Elasticsearch bulk API to update multiple documents at once.
@@ -104,8 +137,6 @@ public class RegistryDao
      */
     public void bulkUpdate(String json) throws Exception
     {
-        System.out.println(json);
-        
         Request req = new Request("POST", "/" + esIndex + "/_bulk");
         req.setJsonEntity(json);
         Response resp = client.performRequest(req);

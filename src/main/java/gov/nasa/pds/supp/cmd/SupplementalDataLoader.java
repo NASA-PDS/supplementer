@@ -3,6 +3,7 @@ package gov.nasa.pds.supp.cmd;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,10 +21,12 @@ import gov.nasa.pds.supp.dao.RegistryDao;
 public class SupplementalDataLoader
 {
     private Logger log;
-    private BulkUpdateJsonBuilder bulkJsonBld;
-    private int UPDATE_BATCH_SIZE = 2;
-
+    private int UPDATE_BATCH_SIZE = 50;
     
+    private BulkUpdateJsonBuilder bulkJsonBld;
+    private int updatedRecordCount;
+
+
     /**
      * A Table record of supplemental data.
      * NOTE: We could not cache TableRecord instances. 
@@ -55,25 +58,45 @@ public class SupplementalDataLoader
      */
     public void loadData(TableObject table, SupplementalFieldsInfo esFieldInfo) throws Exception
     {
+        updatedRecordCount = 0;
+        
+        // LIDs
         if(esFieldInfo.lidIndex != 0)
         {
-            loadLidData(table, esFieldInfo);
+            while(loadLidDataBatch(table, esFieldInfo))
+            {
+                if(updatedRecordCount % 1000 == 0 && updatedRecordCount != 0)
+                {
+                    log.info("Updated " + updatedRecordCount + " record(s)");
+                }
+            }
         }
+        // LIDVIDs
         else if(esFieldInfo.lidVidIndex != 0)
         {
-            loadLidVidData(table, esFieldInfo);
+            while(loadLidVidDataBatch(table, esFieldInfo))
+            {
+                if(updatedRecordCount % 1000 == 0 && updatedRecordCount != 0)
+                {
+                    log.info("Updated " + updatedRecordCount + " record(s)");
+                }
+            }
         }
+        
+        log.info("Updated " + updatedRecordCount + " record(s)");
     }
 
     
-    private void loadLidData(TableObject table, SupplementalFieldsInfo esFieldInfo) throws Exception
+    private boolean loadLidDataBatch(TableObject table, SupplementalFieldsInfo esFieldInfo) throws Exception
     {
         RegistryDao dao = DaoManager.getInstance().getRegistryDao();
+        
         StringBuilder json = new StringBuilder();
+        int jsonRecordCount = 0;
         
         // Read next batch
         List<Record> records = readNextBatch(table, esFieldInfo, UPDATE_BATCH_SIZE);
-        if(records.isEmpty()) return;
+        if(records.isEmpty()) return false;
         
         // Get list of LIDs for this batch
         List<String> lids = new ArrayList<>();
@@ -108,11 +131,19 @@ public class SupplementalDataLoader
                 json.append("\n");
                 json.append(rec.json);
                 json.append("\n");
+                
+                jsonRecordCount++;
             }
         }
         
         // Update Elasticsearch registry index
-        dao.bulkUpdate(json.toString());
+        if(jsonRecordCount != 0)
+        {
+            dao.bulkUpdate(json.toString());
+            updatedRecordCount += jsonRecordCount;
+        }
+        
+        return records.size() == UPDATE_BATCH_SIZE;
     }
     
 
@@ -148,8 +179,56 @@ public class SupplementalDataLoader
     }
     
     
-    private void loadLidVidData(TableObject table, SupplementalFieldsInfo esFieldInfo) throws Exception
+    private boolean loadLidVidDataBatch(TableObject table, SupplementalFieldsInfo esFieldInfo) throws Exception
     {
+        RegistryDao dao = DaoManager.getInstance().getRegistryDao();
+        
+        StringBuilder json = new StringBuilder();
+        int jsonRecordCount = 0;
+        
+        // Read next batch
+        List<Record> records = readNextBatch(table, esFieldInfo, UPDATE_BATCH_SIZE);
+        if(records.isEmpty()) return false;
+        
+        // Get list of LIDVIDs for this batch
+        List<String> lidvids = new ArrayList<>();
+        for(Record rec: records)
+        {
+            lidvids.add(rec.id);
+        }
+
+        // Get existing LIDVIDs for this batch from Elasticsearch
+        Set<String> existingIds = dao.findExistingLidVids(lidvids);
+
+        // Create JSON for Elasticsearch bulk update API call
+        for(Record rec: records)
+        {
+            if(!existingIds.contains(rec.id))
+            {
+                log.warn("Skipping unregistered product " + rec.id);
+                continue;
+            }
+            
+            // NJSON (New Line Delimited JSON) format:
+            // Line 1: primary key / id
+            // Line 2: data
+            String pkJson = bulkJsonBld.createUpdatePK(rec.id);
+            json.append(pkJson);
+            json.append("\n");
+            json.append(rec.json);
+            json.append("\n");
+            
+            jsonRecordCount++;
+        }
+        
+        // Update Elasticsearch registry index
+        if(jsonRecordCount != 0)
+        {
+            dao.bulkUpdate(json.toString());
+            updatedRecordCount += jsonRecordCount;
+        }
+        
+        return records.size() == UPDATE_BATCH_SIZE;
     }
 
 }
