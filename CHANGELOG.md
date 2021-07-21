@@ -1,6 +1,14 @@
 # Changelog
 
-## [v1.0.0-SNAPSHOT](https://github.com/NASA-PDS/supplementer/tree/v1.0.0-SNAPSHOT) (2021-07-01)
+## [«unknown»](https://github.com/NASA-PDS/supplementer/tree/«unknown») (2021-07-21)
+
+[Full Changelog](https://github.com/NASA-PDS/supplementer/compare/v1.0.0-SNAPSHOT...«unknown»)
+
+**Requirements:**
+
+- As a developer, I want to see the deployment instruction and dependencies in the README.md [\#1](https://github.com/NASA-PDS/supplementer/issues/1)
+
+## [v1.0.0-SNAPSHOT](https://github.com/NASA-PDS/supplementer/tree/v1.0.0-SNAPSHOT) (2021-07-03)
 
 [Full Changelog](https://github.com/NASA-PDS/supplementer/compare/a67fee2f301561bb15f6cb744b9ac0e4ae72b183...v1.0.0-SNAPSHOT)
 
