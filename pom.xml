@@ -62,7 +62,7 @@
     <scm>
         <url>https://github.com/NASA-PDS/supplementer/tree/main</url>
         <connection>scm:git:git://github.com/NASA-PDS/supplementer.git</connection>
-        <developerConnection>scm:git:ssh://github.com:NASA-PDS/supplementer.git</developerConnection>
+        <developerConnection>scm:git:ssh://git@github.com/NASA-PDS/supplementer.git</developerConnection>
     </scm>
 
     <properties>
