@@ -34,7 +34,7 @@
 
     <groupId>gov.nasa.pds</groupId>
     <artifactId>supplementer</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Supplementer Tool</name>
