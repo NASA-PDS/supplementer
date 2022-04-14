@@ -13,19 +13,25 @@ public class JParserTest1
 
     public static void main(String[] args) throws Exception
     {
-        Label label = Label.open(new File("/ws3/Cassini/vims/raw/index.xml"));
+        //Label label = Label.open(new File("/ws3/Cassini/vims/raw/index.xml"));
+        Label label = Label.open(new File("/ws3/Supplemental/test.xml"));
         
         List<TableObject> tables = label.getObjects(TableObject.class);
         TableObject table = tables.get(0);
         
-        TableRecord rec = table.readNext();
+        TableRecord rec = null;
         
-        FieldDescription[] fields = table.getFields();
-        for(int i = 0; i < fields.length; i++)
+        while((rec = table.readNext()) != null)
         {
-            FieldDescription field = fields[i];
-            System.out.format("%2d  %s (%s)  ->  %s\n", 
-                i+1, field.getName(), field.getType(), rec.getString(i+1));
+            FieldDescription[] fields = table.getFields();
+            for(int i = 0; i < fields.length; i++)
+            {
+                FieldDescription field = fields[i];
+                System.out.format("%2d  %s (%s)  ->  %s\n", 
+                    i+1, field.getName(), field.getType(), rec.getString(i+1));
+            }
+            
+            System.out.println();
         }
         
         label.close();

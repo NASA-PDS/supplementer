@@ -2,6 +2,7 @@ package gov.nasa.pds.supp;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -13,7 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nasa.pds.supp.cmd.CliCommand;
-import gov.nasa.pds.supp.cmd.LoadLabelsCmd;
+import gov.nasa.pds.registry.common.util.ManifestUtils;
+import gov.nasa.pds.supp.cmd.AddSupplementalFieldsCmd;
 import gov.nasa.pds.supp.util.ExceptionUtils;
 import gov.nasa.pds.supp.util.log.Log4jConfigurator;
 
@@ -54,6 +56,13 @@ public class SuppCli
             printHelp();
             System.exit(1);
         }
+
+        // Version
+        if(args.length == 1 && ("-V".equals(args[0]) || "--version".equals(args[0])))
+        {
+            printVersion();
+            System.exit(0);
+        }        
 
         if(!parse(args))
         {
@@ -100,8 +109,9 @@ public class SuppCli
 
         System.out.println();
         System.out.println("Commands:");
-        System.out.println("  load-labels   Load supplemental data from Product_Metadata_Supplemental labels");
-        System.out.println("                into registry index");
+        System.out.println("  add-supplemental-fields   Add supplemental fields to already registered products.");
+        System.out.println("  update-core-fields        Update core fields of already registered products.");
+        System.out.println("  -V, --version             Print Supplementer version");
         
         System.out.println();
         System.out.println("Options:");
@@ -111,7 +121,22 @@ public class SuppCli
         
         System.out.println();
         System.out.println("Pass -help after any command to see command-specific usage information, for example,");
-        System.out.println("  supplementer load-labels -help");
+        System.out.println("  supplementer add-supplemental-fields -help");
+    }
+
+    
+    /**
+     * Print Supplementer version
+     */
+    public static void printVersion()
+    {
+        String version = SuppCli.class.getPackage().getImplementationVersion();
+        System.out.println("Supplementer version: " + version);
+        Attributes attrs = ManifestUtils.getAttributes();
+        if(attrs != null)
+        {
+            System.out.println("Build time: " + attrs.getValue("Build-Time"));
+        }
     }
 
     
@@ -175,7 +200,7 @@ public class SuppCli
     private void initCommands()
     {
         commands = new HashMap<>();
-        commands.put("load-labels", new LoadLabelsCmd());
+        commands.put("add-supplemental-fields", new AddSupplementalFieldsCmd());
     }
     
     
