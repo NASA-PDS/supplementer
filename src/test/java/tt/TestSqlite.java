@@ -18,7 +18,7 @@ public class TestSqlite
             {
                 //if(!id.startsWith("urn:nasa"))
                 System.out.println(id + ", " + dois);
-            });                
+            });
         }
     }
     

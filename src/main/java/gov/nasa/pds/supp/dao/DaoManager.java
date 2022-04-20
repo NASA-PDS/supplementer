@@ -2,6 +2,8 @@ package gov.nasa.pds.supp.dao;
 
 import org.elasticsearch.client.RestClient;
 
+import gov.nasa.pds.supp.dao.doi.DoiDao;
+
 /**
  * A singleton to store DAO references.
  * 
@@ -13,6 +15,7 @@ public final class DaoManager
     
     private RegistryDao registryDao;
     private SchemaDao schemaDao;
+    private DoiDao doiDao;
     
     
     /**
@@ -24,6 +27,7 @@ public final class DaoManager
     {
         registryDao = new RegistryDao(client, esIndex);
         schemaDao = new SchemaDao(client, esIndex);
+        doiDao = new DoiDao(client, esIndex);
     }
     
     
@@ -65,6 +69,16 @@ public final class DaoManager
     public SchemaDao getSchemaDao()
     {
         return schemaDao;
+    }
+
+    
+    /**
+     * Get SchemaDao
+     * @return SchemaDao
+     */
+    public DoiDao getDoiDao()
+    {
+        return doiDao;
     }
 
 }
