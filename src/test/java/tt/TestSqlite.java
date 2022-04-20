@@ -1,9 +1,9 @@
 package tt;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import tt.doi.Record;
-import tt.doi.SqliteReader;
+import gov.nasa.pds.supp.dao.doi.SqliteReader;
 
 
 public class TestSqlite
@@ -11,13 +11,14 @@ public class TestSqlite
     private static class MyCallback implements SqliteReader.Callback
     {
         @Override
-        public void onBatch(List<Record> batch)
+        public void onBatch(Map<String, Set<String>> batch)
         {
             System.out.println("===============================");
-            for(Record rec: batch)
+            batch.forEach((id, dois) -> 
             {
-                System.out.println(rec.getId() + ", " + rec.getDois());
-            }
+                //if(!id.startsWith("urn:nasa"))
+                System.out.println(id + ", " + dois);
+            });                
         }
     }
     
@@ -25,7 +26,7 @@ public class TestSqlite
     public static void main(String[] args) throws Exception
     {
         SqliteReader reader = new SqliteReader(new MyCallback());
-        reader.read("C:/tmp/doi.db");
+        reader.read("C:/tmp/doi_2.db");
     }
     
 }

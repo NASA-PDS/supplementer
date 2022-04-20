@@ -1,8 +1,8 @@
 package gov.nasa.pds.supp.cmd;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.util.Arrays;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.elasticsearch.client.ResponseException;
@@ -10,27 +10,26 @@ import org.elasticsearch.client.RestClient;
 
 import gov.nasa.pds.registry.common.es.client.EsClientFactory;
 import gov.nasa.pds.registry.common.es.client.EsUtils;
+import gov.nasa.pds.registry.common.es.dao.schema.SchemaDao;
 import gov.nasa.pds.registry.common.util.CloseUtils;
+import gov.nasa.pds.registry.common.util.Tuple;
+import gov.nasa.pds.supp.Constants;
 import gov.nasa.pds.supp.dao.DaoManager;
 
 /**
  * CLI command to update products already stored in Elasticsearch registry index  
- * with supplemental data from Product_Metadata_Supplemental labels. 
+ * with DOI data (from Sqlite database).
  *  
  * @author karpenko
  */
-public class AddSupplementalFieldsCmd implements CliCommand
+public class AddDoiCmd implements CliCommand
 {
-    private SupplementalLabelProcessor proc;
-    
-    
     /**
      * Constructor
      */
-    public AddSupplementalFieldsCmd()
+    public AddDoiCmd()
     {
     }
-
     
     @Override
     public void run(CommandLine cmdLine) throws Exception
@@ -53,15 +52,6 @@ public class AddSupplementalFieldsCmd implements CliCommand
         File file = new File(pFile);
         if(!file.exists()) throw new Exception("File doesn't exist: " + pFile);
 
-        String lowerCaseName = pFile.toLowerCase();
-        if(!lowerCaseName.endsWith(".xml") && !lowerCaseName.endsWith(".txt")) 
-        {
-            throw new Exception("Unknown file type. Only '.xml' or '.txt' files are allowed: " + pFile);            
-        }
-
-        // Init label processor
-        proc = new SupplementalLabelProcessor();
-
         // Init Elasticsearch client and DAOs
         RestClient client = null;
         try
@@ -69,8 +59,11 @@ public class AddSupplementalFieldsCmd implements CliCommand
             client = EsClientFactory.createRestClient(esUrl, authPath);
             DaoManager.init(client, indexName);
             
-            // Process supplemental (list) file
-            processFile(pFile);
+            // Update Elasticsearch schema if needed
+            updateSchema(client, indexName);
+            
+            // Process Sqlite database file
+            processFile(file);
         }
         catch(ResponseException ex)
         {
@@ -83,78 +76,46 @@ public class AddSupplementalFieldsCmd implements CliCommand
     }
 
     
+    private void updateSchema(RestClient client, String indexName) throws Exception
+    {
+        SchemaDao dao = new SchemaDao(client, indexName);
+        Set<String> fields = dao.getFieldNames();
+        
+        if(!fields.contains(Constants.DOI_FIELD))
+        {
+            Tuple tuple = new Tuple(Constants.DOI_FIELD, "keyword");
+            dao.updateSchema(Arrays.asList(tuple));
+        }
+    }
+
+    
+    private void processFile(File file)
+    {
+        
+    }
+    
+    
     /**
      * Print help screen.
      */
     public void printHelp()
     {
-        System.out.println("Usage: supplementer add-supplemental-fields <options>");
+        System.out.println("Usage: supplementer add-doi <options>");
 
         System.out.println();
-        System.out.println("Add supplemental fields to already registered products.");
+        System.out.println("Add DOI to already registered products.");
         
         System.out.println();
         System.out.println("Required parameters:");
-        System.out.println("  -file <path>     Either Product_Metadata_Supplemental label file (.xml) or a");
-        System.out.println("                   text manifest file (.txt) with the list of supplemental label paths"); 
-        System.out.println("                   (one file path per line).");
+        System.out.println("  -file <path>     Path to Sqlite database");
         
         System.out.println();        
         System.out.println("Optional parameters:");
         System.out.println("  -auth <file>     Authentication config file");
         System.out.println("  -es <url>        Elasticsearch URL. Default is http://localhost:9200");
         System.out.println("  -index <name>    Elasticsearch index name. Default is 'registry'");
-
         System.out.println();
     }
 
     
-    private void processFile(String filePath) throws Exception
-    {
-        String lowerCaseName = filePath.toLowerCase();
-        if(lowerCaseName.endsWith(".xml"))
-        {
-            processSupplementalLabel(filePath);
-        }
-        else if(lowerCaseName.endsWith(".txt"))
-        {
-            processLabelListFile(filePath);
-        }
-    }
-    
-
-    private void processSupplementalLabel(String filePath) throws Exception
-    {
-        proc.process(new File(filePath));
-    }
-
-    
-    private void processLabelListFile(String filePath) throws Exception
-    {
-        BufferedReader rd = null;
-        
-        try
-        {
-            rd = new BufferedReader(new FileReader(filePath));
-            
-            String line;
-            while((line = rd.readLine()) != null)
-            {
-                line = line.trim();
-                
-                if(line.length() > 0)
-                {
-                    // Skip comments
-                    if(line.startsWith("#")) continue;
-
-                    processSupplementalLabel(line);
-                }
-            }
-        }
-        finally
-        {
-            CloseUtils.close(rd);
-        }
-    }
-
 }
