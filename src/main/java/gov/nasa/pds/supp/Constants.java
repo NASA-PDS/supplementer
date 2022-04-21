@@ -7,5 +7,5 @@ package gov.nasa.pds.supp;
  */
 public interface Constants
 {
-    public static final String DOI_FIELD = "ops.Identifiers/ops.doi";
+    public static final String DOI_FIELD = "ops:Identifiers/ops:doi";
 }

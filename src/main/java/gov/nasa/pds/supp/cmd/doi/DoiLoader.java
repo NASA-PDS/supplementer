@@ -58,13 +58,13 @@ public class DoiLoader implements SqliteReader.Callback
                 }
             }
         }
-        
 
-        System.out.println("===============================");
         changedIds.forEach((id, dois) -> 
         {
-            System.out.println(id + ", " + dois);
+            log.info("Updating " + id + ", " + dois);
         });
-
+        
+        dao.updateDois(changedIds);
     }
+
 }

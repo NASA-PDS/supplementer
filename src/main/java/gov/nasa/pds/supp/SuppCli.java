@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nasa.pds.supp.cmd.CliCommand;
+import gov.nasa.pds.supp.cmd.doi.AddDoiCmd;
 import gov.nasa.pds.supp.cmd.supp.AddSupplementalFieldsCmd;
 import gov.nasa.pds.registry.common.util.ManifestUtils;
 import gov.nasa.pds.supp.util.ExceptionUtils;
@@ -110,7 +111,7 @@ public class SuppCli
         System.out.println();
         System.out.println("Commands:");
         System.out.println("  add-supplemental-fields   Add supplemental fields to already registered products.");
-        System.out.println("  update-core-fields        Update core fields of already registered products.");
+        System.out.println("  add-doi                   Add DOIs to already registered products.");
         System.out.println("  -V, --version             Print Supplementer version");
         
         System.out.println();
@@ -201,6 +202,7 @@ public class SuppCli
     {
         commands = new HashMap<>();
         commands.put("add-supplemental-fields", new AddSupplementalFieldsCmd());
+        commands.put("add-doi", new AddDoiCmd());
     }
     
     

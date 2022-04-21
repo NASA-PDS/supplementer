@@ -78,7 +78,7 @@ public class DoiDao extends Dao
         String json = bld.createUpdateDoisRequest(newIds);
         log.debug("Request:\n" + json);
         
-        String reqUrl = "/" + indexName + "/_bulk"; //?refresh=wait_for";
+        String reqUrl = "/" + indexName + "/_bulk?refresh=wait_for";
         Request req = new Request("POST", reqUrl);
         req.setJsonEntity(json);
         

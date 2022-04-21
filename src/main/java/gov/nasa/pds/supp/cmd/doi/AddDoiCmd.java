@@ -98,9 +98,10 @@ public class AddDoiCmd implements CliCommand
     }
 
     
-    private void processFile(File file)
+    private void processFile(File file) throws Exception
     {
-        
+        DoiLoader loader = new DoiLoader();
+        loader.load(file);        
     }
     
     
@@ -112,7 +113,7 @@ public class AddDoiCmd implements CliCommand
         System.out.println("Usage: supplementer add-doi <options>");
 
         System.out.println();
-        System.out.println("Add DOI to already registered products.");
+        System.out.println("Add DOIs to already registered products.");
         
         System.out.println();
         System.out.println("Required parameters:");
@@ -120,9 +121,9 @@ public class AddDoiCmd implements CliCommand
         
         System.out.println();        
         System.out.println("Optional parameters:");
-        System.out.println("  -auth <file>     Authentication config file");
-        System.out.println("  -es <url>        Elasticsearch URL. Default is http://localhost:9200");
-        System.out.println("  -index <name>    Elasticsearch index name. Default is 'registry'");
+        System.out.println("  -auth <file>     Registry authentication configuration file");
+        System.out.println("  -es <url>        Registry (OpenSearch) URL. Default is http://localhost:9200");
+        System.out.println("  -index <name>    Registry index name. Default is 'registry'");
         System.out.println();
     }
 
