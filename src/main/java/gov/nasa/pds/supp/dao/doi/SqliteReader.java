@@ -24,7 +24,7 @@ public class SqliteReader
          * This method is called when new batch of DOI records is created.
          * @param batch a batch of DOI records
          */
-        public void onBatch(Map<String, Set<String>> batch);
+        public void onBatch(Map<String, Set<String>> batch) throws Exception;
     }
     
     // Batch size. Commit after this number of records
@@ -64,8 +64,6 @@ public class SqliteReader
             String url = "jdbc:sqlite:" + dbFilePath;
             con = DriverManager.getConnection(url);
 
-            System.out.println("Connected to " + dbFilePath);
-            
             st = con.createStatement();
             rs = st.executeQuery(sql);
 
@@ -125,7 +123,7 @@ public class SqliteReader
     }
 
     
-    private void processBatch()
+    private void processBatch() throws Exception
     {
         if(callback != null) callback.onBatch(batch);
         batch.clear();

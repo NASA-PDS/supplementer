@@ -1,4 +1,4 @@
-package gov.nasa.pds.supp.cmd;
+package gov.nasa.pds.supp.cmd.supp;
 
 import java.io.File;
 import java.util.ArrayList;

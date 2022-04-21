@@ -1,4 +1,4 @@
-package gov.nasa.pds.supp.cmd;
+package gov.nasa.pds.supp.cmd.supp;
 
 /**
  * Elasticsearch name and data type of supplemental fields.

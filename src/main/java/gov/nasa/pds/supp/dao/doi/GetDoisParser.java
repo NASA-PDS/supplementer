@@ -7,20 +7,30 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import gov.nasa.pds.registry.common.es.client.SearchResponseParser;
+import gov.nasa.pds.supp.Constants;
 
-
+/**
+ * Parses "get DOIs" response from Elasticsearch.
+ * @author karpenko
+ */
 public class GetDoisParser implements SearchResponseParser.Callback
 {
     private Map<String, Set<String>> map;
     
-    
+    /**
+     * Constructor
+     */
     public GetDoisParser()
     {
         map = new TreeMap<>();
     }
 
     
-    public Map<String, Set<String>> getIdMap()
+    /**
+     * Get DOIs by primary key (usually LIDVID)
+     * @return a map. Key = primary key (usually LIDVID), Value = a set of DOIs
+     */
+    public Map<String, Set<String>> getDoiMap()
     {
         return map;
     }
@@ -31,26 +41,30 @@ public class GetDoisParser implements SearchResponseParser.Callback
     {
         if(rec instanceof Map<?, ?>)
         {
-            Object obj = ((Map<?, ?>)rec).get("alternate_ids");
-            if(obj == null) return;
+            Object obj = ((Map<?, ?>)rec).get(Constants.DOI_FIELD);
             
-            // Multiple values
-            if(obj instanceof List<?>)
+            // No DOIs
+            if(obj == null) 
             {
-                Set<String> altIds = new TreeSet<>();
+                map.put(id, new TreeSet<>());
+            }
+            // Multiple values
+            else if(obj instanceof List<?>)
+            {
+                Set<String> dois = new TreeSet<>();
                 for(Object item: (List<?>)obj)
                 {
-                    altIds.add(item.toString());
+                    dois.add(item.toString());
                 }
                 
-                map.put(id, altIds);
+                map.put(id, dois);
             }
             // Single value
             else if(obj instanceof String)
             {
-                Set<String> altIds = new TreeSet<>();
-                altIds.add((String)obj);
-                map.put(id, altIds);
+                Set<String> dois = new TreeSet<>();
+                dois.add((String)obj);
+                map.put(id, dois);
             }
         }
     }

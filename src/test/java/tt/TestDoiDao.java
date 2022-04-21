@@ -25,7 +25,7 @@ public class TestDoiDao
             DoiDao dao = new DoiDao(client, "registry");
 
             List<String> lids = Arrays.asList(
-                    "urn:nasa:pds:cassini_vims_cruise:data_raw:1294638283",
+                    "urn:nasa:pds:kaguya_grs_spectra:document:kgrs_ephemerides_doc::1.0",
                     "urn:nasa:pds:cassini_vims_cruise:data_raw:1294638377");
             Map<String, Set<String>> map = dao.getDois(lids);
             map.forEach((key, value) -> 

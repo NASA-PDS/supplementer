@@ -1,10 +1,12 @@
-package gov.nasa.pds.supp.cmd;
+package gov.nasa.pds.supp.cmd.doi;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 
@@ -14,6 +16,7 @@ import gov.nasa.pds.registry.common.es.dao.schema.SchemaDao;
 import gov.nasa.pds.registry.common.util.CloseUtils;
 import gov.nasa.pds.registry.common.util.Tuple;
 import gov.nasa.pds.supp.Constants;
+import gov.nasa.pds.supp.cmd.CliCommand;
 import gov.nasa.pds.supp.dao.DaoManager;
 
 /**
@@ -24,6 +27,8 @@ import gov.nasa.pds.supp.dao.DaoManager;
  */
 public class AddDoiCmd implements CliCommand
 {
+    protected Logger log;
+    
     /**
      * Constructor
      */
@@ -31,9 +36,12 @@ public class AddDoiCmd implements CliCommand
     {
     }
     
+    
     @Override
     public void run(CommandLine cmdLine) throws Exception
     {
+        log = LogManager.getLogger(this.getClass());
+        
         if(cmdLine.hasOption("help"))
         {
             printHelp();
@@ -83,6 +91,7 @@ public class AddDoiCmd implements CliCommand
         
         if(!fields.contains(Constants.DOI_FIELD))
         {
+            log.info("Updating schema.");
             Tuple tuple = new Tuple(Constants.DOI_FIELD, "keyword");
             dao.updateSchema(Arrays.asList(tuple));
         }

@@ -1,4 +1,4 @@
-package gov.nasa.pds.supp.cmd;
+package gov.nasa.pds.supp.cmd.supp;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,6 +11,7 @@ import org.elasticsearch.client.RestClient;
 import gov.nasa.pds.registry.common.es.client.EsClientFactory;
 import gov.nasa.pds.registry.common.es.client.EsUtils;
 import gov.nasa.pds.registry.common.util.CloseUtils;
+import gov.nasa.pds.supp.cmd.CliCommand;
 import gov.nasa.pds.supp.dao.DaoManager;
 
 /**

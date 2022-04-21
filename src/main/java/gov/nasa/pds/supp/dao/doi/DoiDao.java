@@ -60,7 +60,7 @@ public class DoiDao extends Dao
         SearchResponseParser parser = new SearchResponseParser();
         parser.parseResponse(resp, cb);
         
-        return cb.getIdMap();
+        return cb.getDoiMap();
     }
 
     

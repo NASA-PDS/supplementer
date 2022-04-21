@@ -14,8 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nasa.pds.supp.cmd.CliCommand;
+import gov.nasa.pds.supp.cmd.supp.AddSupplementalFieldsCmd;
 import gov.nasa.pds.registry.common.util.ManifestUtils;
-import gov.nasa.pds.supp.cmd.AddSupplementalFieldsCmd;
 import gov.nasa.pds.supp.util.ExceptionUtils;
 import gov.nasa.pds.supp.util.log.Log4jConfigurator;
 

@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonWriter;
 
 import gov.nasa.pds.label.object.TableRecord;
 import gov.nasa.pds.registry.common.util.date.PdsDateConverter;
-import gov.nasa.pds.supp.cmd.SupplementalFieldsInfo;
+import gov.nasa.pds.supp.cmd.supp.SupplementalFieldsInfo;
 
 /**
  * Builds JSON for Elasticsearch Bulk Update API call. 
