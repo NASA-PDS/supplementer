@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
@@ -28,13 +26,8 @@ import gov.nasa.pds.registry.common.util.CloseUtils;
  *  
  * @author karpenko
  */
-public class RegistryDao
+public class RegistryDao extends Dao
 {
-    private Logger log;
-
-    private RestClient client;
-    private String esIndex;
-    
     /**
      * Constructor
      * @param client Elasticsearch client
@@ -42,10 +35,7 @@ public class RegistryDao
      */
     public RegistryDao(RestClient client, String esIndex)
     {
-        this.client = client;
-        this.esIndex = esIndex;
-        
-        log = LogManager.getLogger(this.getClass());
+        super(client, esIndex);
     }
 
     
@@ -65,7 +55,7 @@ public class RegistryDao
         int maxHits = 5000;
         
         // Create request
-        Request req = new Request("GET", "/" + esIndex + "/_search");
+        Request req = new Request("GET", "/" + indexName + "/_search");
         RegistryRequestBuilder bld = new RegistryRequestBuilder();
         String json = bld.createFindVidsByLids(lids, maxHits);
         req.setJsonEntity(json);
@@ -110,7 +100,7 @@ public class RegistryDao
         if(lidvids == null || lidvids.isEmpty()) return null;
         
         // Create request
-        Request req = new Request("GET", "/" + esIndex + "/_search");
+        Request req = new Request("GET", "/" + indexName + "/_search");
         RegistryRequestBuilder bld = new RegistryRequestBuilder();
         String json = bld.createFindLidVids(lidvids);
         req.setJsonEntity(json);
@@ -137,7 +127,7 @@ public class RegistryDao
      */
     public void bulkUpdate(String json) throws Exception
     {
-        Request req = new Request("POST", "/" + esIndex + "/_bulk");
+        Request req = new Request("POST", "/" + indexName + "/_bulk");
         req.setJsonEntity(json);
         Response resp = client.performRequest(req);
 

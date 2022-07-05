@@ -3,8 +3,12 @@ package gov.nasa.pds.supp.dao;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.gson.stream.JsonWriter;
+
+import gov.nasa.pds.supp.Constants;
 
 
 /**
@@ -126,6 +130,103 @@ public class RegistryRequestBuilder
         writer.endObject();     // query
         
         writer.endObject();
+        writer.close();
+        return out.toString();
+    }
+
+    
+    /**
+     * Build a query to select DOIs by document primary key
+     * @param ids list of primary keys (lidvids right now)
+     * @return JSON
+     * @throws Exception an exception
+     */
+    public String createGetDoisRequest(Collection<String> ids) throws Exception
+    {
+        if(ids == null || ids.isEmpty()) throw new Exception("Missing ids");
+            
+        StringWriter out = new StringWriter();
+        JsonWriter writer = createJsonWriter(out);
+
+        // Create ids query
+        writer.beginObject();
+
+        writer.name("_source").value(Constants.DOI_FIELD);
+        writer.name("size").value(ids.size());
+
+        writer.name("query");
+        writer.beginObject();
+        writer.name("ids");
+        writer.beginObject();
+        
+        writer.name("values");
+        writer.beginArray();
+        for(String id: ids)
+        {
+            writer.value(id);
+        }
+        writer.endArray();
+        
+        writer.endObject();
+        writer.endObject();
+        writer.endObject();
+
+        writer.close();
+        return out.toString();
+    }
+
+    
+    /**
+     * Create Elasticsearch request to update DOI field(s)
+     * @param doiMap key = primary keys (usually LIDVIDs), value = set of DOIs
+     * @return JSON string
+     * @throws Exception an exception
+     */
+    public String createUpdateDoisRequest(Map<String, Set<String>> doiMap) throws Exception
+    {
+        if(doiMap == null || doiMap.isEmpty()) throw new IllegalArgumentException("Missing ids");
+        
+        StringBuilder bld = new StringBuilder();
+        
+        // Build NJSON (new-line delimited JSON)
+        for(Map.Entry<String, Set<String>> entry: doiMap.entrySet())
+        {
+            // Line 1: Elasticsearch document ID
+            bld.append("{ \"update\" : {\"_id\" : \"" + entry.getKey() + "\" } }\n");
+            
+            // Line 2: Data
+            String dataJson = buildUpdateDocJson(Constants.DOI_FIELD, entry.getValue());
+            bld.append(dataJson);
+            bld.append("\n");
+        }
+        
+        return bld.toString();
+
+    }
+
+    
+    private String buildUpdateDocJson(String field, Collection<String> values) throws Exception
+    {
+        StringWriter out = new StringWriter();
+        JsonWriter writer = createJsonWriter(out);
+
+        writer.beginObject();
+
+        writer.name("doc");
+        writer.beginObject();
+        
+        writer.name(field);
+        
+        writer.beginArray();        
+        for(String value: values)
+        {
+            writer.value(value);
+        }
+        writer.endArray();
+        
+        writer.endObject();        
+        writer.endObject();
+        
         writer.close();
         return out.toString();
     }

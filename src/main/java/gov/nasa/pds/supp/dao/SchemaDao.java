@@ -17,11 +17,8 @@ import gov.nasa.pds.supp.util.Tuple;
  * 
  * @author karpenko
  */
-public class SchemaDao
+public class SchemaDao extends Dao
 {
-    private RestClient client;
-    private String esIndex;
-    
     /**
      * Constructor
      * @param client Elasticsearch client
@@ -29,8 +26,7 @@ public class SchemaDao
      */
     public SchemaDao(RestClient client, String esIndex)
     {
-        this.client = client;
-        this.esIndex = esIndex;
+        super(client, esIndex);
     }
     
     
@@ -41,10 +37,10 @@ public class SchemaDao
      */
     public Set<String> getSupplementalFieldNames() throws Exception
     {
-        Request req = new Request("GET", "/" + esIndex + "/_mappings");
+        Request req = new Request("GET", "/" + indexName + "/_mappings");
         Response resp = client.performRequest(req);
         
-        MappingsParser parser = new MappingsParser(esIndex);
+        MappingsParser parser = new MappingsParser(indexName);
         
         Set<String> fields = new TreeSet<>();
         parser.parse(resp.getEntity(), (name) -> 
@@ -71,7 +67,7 @@ public class SchemaDao
         SchemaRequestBuilder bld = new SchemaRequestBuilder();
         String json = bld.createUpdateSchemaRequest(fields);
         
-        Request req = new Request("PUT", "/" + esIndex + "/_mapping");
+        Request req = new Request("PUT", "/" + indexName + "/_mapping");
         req.setJsonEntity(json);
         client.performRequest(req);
     }

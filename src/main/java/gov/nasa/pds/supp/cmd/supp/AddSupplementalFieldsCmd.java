@@ -1,4 +1,4 @@
-package gov.nasa.pds.supp.cmd;
+package gov.nasa.pds.supp.cmd.supp;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,13 +11,16 @@ import org.elasticsearch.client.RestClient;
 import gov.nasa.pds.registry.common.es.client.EsClientFactory;
 import gov.nasa.pds.registry.common.es.client.EsUtils;
 import gov.nasa.pds.registry.common.util.CloseUtils;
+import gov.nasa.pds.supp.cmd.CliCommand;
 import gov.nasa.pds.supp.dao.DaoManager;
 
 /**
- * Load supplemental data from Product_Metadata_Supplemental labels into registry index 
+ * CLI command to update products already stored in Elasticsearch registry index  
+ * with supplemental data from Product_Metadata_Supplemental labels. 
+ *  
  * @author karpenko
  */
-public class LoadLabelsCmd implements CliCommand
+public class AddSupplementalFieldsCmd implements CliCommand
 {
     private SupplementalLabelProcessor proc;
     
@@ -25,7 +28,7 @@ public class LoadLabelsCmd implements CliCommand
     /**
      * Constructor
      */
-    public LoadLabelsCmd()
+    public AddSupplementalFieldsCmd()
     {
     }
 
@@ -86,22 +89,22 @@ public class LoadLabelsCmd implements CliCommand
      */
     public void printHelp()
     {
-        System.out.println("Usage: supplementer load-labels <options>");
+        System.out.println("Usage: supplementer add-supplemental-fields <options>");
 
         System.out.println();
-        System.out.println("Load supplemental data from Product_Metadata_Supplemental labels into registry index");
+        System.out.println("Add supplemental fields to already registered products.");
         
         System.out.println();
         System.out.println("Required parameters:");
-        System.out.println("  -file <path>     Either Product_Metadata_Supplemental label file (.xml)");
-        System.out.println("                   or a text file (.txt) with the list of label files"); 
+        System.out.println("  -file <path>     Either Product_Metadata_Supplemental label file (.xml) or a");
+        System.out.println("                   text manifest file (.txt) with the list of supplemental label paths"); 
         System.out.println("                   (one file path per line).");
         
         System.out.println();        
         System.out.println("Optional parameters:");
-        System.out.println("  -auth <file>     Authentication config file");
-        System.out.println("  -es <url>        Elasticsearch URL. Default is http://localhost:9200");
-        System.out.println("  -index <name>    Elasticsearch index name. Default is 'registry'");
+        System.out.println("  -auth <file>     Registry authentication configuration file");
+        System.out.println("  -es <url>        Registry (OpenSearch) URL. Default is http://localhost:9200");
+        System.out.println("  -index <name>    Registry index name. Default is 'registry'");
 
         System.out.println();
     }
