@@ -57,6 +57,32 @@ To load this list into local registry, run the following command:
 supplementer load-labels /tmp/harvest/out/supplemental.txt
 ```
 
+### Add DOI Metadata from Database
+
+Run following command to import data from Sqlite DOI database into the Registry
+
+```
+supplementer add-doi -file /tmp/my_doi.db
+```
+
+You can also pass optional parameters to configure Registry URL and authentication.
+
+```
+Usage: supplementer add-doi <options>
+
+Add DOIs to already registered products.
+
+Required parameters:
+  -file <path>     Path to Sqlite database
+
+Optional parameters:
+  -auth <file>     Registry authentication configuration file
+  -es <url>        Registry (OpenSearch) URL. Default is http://localhost:9200
+  -index <name>    Registry index name. Default is 'registry'
+```
+
+Once executed, check ops:Identifiers/ops:doi field in OpenSearch / Elasticsearch
+
 ## Contributing
 
 Within the NASA Planetary Data System, we value the health of our community as much as the code. Towards that end, we ask that you read and practice what's described in these documents:
