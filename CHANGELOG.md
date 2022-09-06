@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.1.0-SNAPSHOT](https://github.com/NASA-PDS/supplementer/tree/v1.1.0-SNAPSHOT) (2022-07-06)
+## [v1.1.0-SNAPSHOT](https://github.com/NASA-PDS/supplementer/tree/v1.1.0-SNAPSHOT) (2022-08-03)
 
 [Full Changelog](https://github.com/NASA-PDS/supplementer/compare/v1.0.1...v1.1.0-SNAPSHOT)
 
